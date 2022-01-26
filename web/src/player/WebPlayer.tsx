@@ -50,7 +50,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
                 setError(error as Error)
             }
         }
-    }, [deviceId])
+    }, [deviceId, handleNewDevice])
 
     useEffect(() => {
         const script = document.createElement("script")
@@ -85,7 +85,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
                 console.log("autoplay_failed")
             })
 
-            player.addListener('ready', async (inst: Spotify.WebPlaybackInstance) => {
+            player.on("ready", async (inst: Spotify.WebPlaybackInstance) => {
                 setDeviceId(inst.device_id)
                 try {
                     const dev = await getDevice()
@@ -99,15 +99,15 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
                 console.log("not_ready", inst)
             })
 
-            player.addListener("authentication_error", (err) => {
+            player.on("authentication_error", (err) => {
                 setError(err)
             })
 
-            player.addListener("initialization_error", (err) => {
+            player.on("initialization_error", (err) => {
                 setError(err)
             })
 
-            player.addListener("playback_error", (err) => {
+            player.on("playback_error", (err) => {
                 setError(err)
             })
 
@@ -115,13 +115,19 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
         }
 
         return () => {
+            player?.removeListener("account_error")
+            player?.removeListener("ready")
+            player?.removeListener("not_ready")
+            player?.removeListener("authentication_error")
+            player?.removeListener("initialization_error")
+            player?.removeListener("playback_error")
             player?.disconnect()
         }
-    }, [player])
+    }, [player, handleNewDevice])
 
     useEffect(() => {
         if (player) {
-            player.addListener("player_state_changed", async (state: Spotify.PlaybackState) => {
+            player.on("player_state_changed", async (state: Spotify.PlaybackState) => {
                 try {
                     const dev = await getDevice()
                     handleNewDevice(deviceId, dev)
@@ -142,7 +148,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
         return () => {
             player?.removeListener("player_state_changed")
         }
-    }, [player, deviceId])
+    }, [player, deviceId, handleNewDevice])
 
     return (
         <div>
