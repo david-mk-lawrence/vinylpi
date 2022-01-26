@@ -9,7 +9,7 @@ from .spotify import Spotify
 app = FastAPI()
 
 cors_origins = [
-    os.environ["FRONTEND_URL"],
+    os.environ["WEB_URL"],
 ]
 
 app.add_middleware(
@@ -37,7 +37,7 @@ async def callback(code: str = None, error: str = None):
     except Exception as err:
         raise HTTPException(status_code=403, detail=err)
 
-    return RedirectResponse(os.environ["FRONTEND_URL"])
+    return RedirectResponse(os.environ["WEB_URL"])
 
 @app.get("/auth/token")
 async def token():

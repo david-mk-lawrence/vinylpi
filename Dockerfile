@@ -1,20 +1,20 @@
-FROM node:17-alpine as frontend
+FROM node:17-alpine as web
 
 WORKDIR /usr/src/app
 
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
-COPY frontend/package.json frontend/package-lock.json ./
+COPY web/package.json web/package-lock.json ./
 RUN npm install
 
-COPY frontend/src src
-COPY frontend/public public
-COPY frontend/tsconfig.json frontend/.env ./
+COPY web/src src
+COPY web/public public
+COPY web/tsconfig.json web/.env ./
 
 CMD [ "npm", "run", "start" ]
 
 ########################################
-FROM python:3.9 as backend
+FROM python:3.9 as api
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -42,13 +42,11 @@ RUN apt-get update && apt-get -y install curl \
     && curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
 WORKDIR $PYSETUP_PATH
-COPY backend/poetry.lock backend/pyproject.toml ./
+COPY api/poetry.lock api/pyproject.toml ./
 RUN poetry install --no-dev --no-root
 RUN mkdir .spotify-cache && chmod 0755 .spotify-cache
 
-# COPY --from=frontend /usr/src/app/build/ react/
-
-COPY backend/src/api api
+COPY api/src/api api
 RUN poetry install
 
 CMD  ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "80"]

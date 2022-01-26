@@ -1,4 +1,4 @@
-backend/.venv
-frontend/node_modules
+api/.venv
+web/node_modules
 .gitignore
 README.*
