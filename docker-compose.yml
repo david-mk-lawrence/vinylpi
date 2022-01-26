@@ -1,0 +1,9 @@
+services:
+  app:
+    image: davidlawrence/rfid-player:latest
+    env_file:
+      - spotify.env
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend/src/api:/opt/pysetup/api
