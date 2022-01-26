@@ -49,6 +49,30 @@ async def token():
         else:
             token = None
     except Exception as err:
-        return {"token": None, "error": str(err)}
+        return {"error": str(err)}
 
-    return {"token": token, "error": None}
+    return {"token": token}
+
+@app.get("/transfer/{device_id}")
+async def transfer(device_id):
+    try:
+        spotify = Spotify()
+        spotify.transfer(device_id)
+
+        dev = spotify.device()
+        if not dev:
+            return None
+        return dev.get("device")
+    except Exception as err:
+        return {"error": str(err)}
+
+@app.get("/device")
+async def device():
+    try:
+        spotify = Spotify()
+        dev = spotify.device()
+        if not dev:
+            return None
+        return dev.get("device")
+    except Exception as err:
+        return {"error": str(err)}

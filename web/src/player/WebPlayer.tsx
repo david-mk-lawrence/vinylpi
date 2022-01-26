@@ -1,14 +1,56 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
+import axios from "axios"
+
+import Display from "./Display"
+import Controls from "./Controls"
+import Playback from "./Playback"
+import { Device } from "./types"
 
 interface WebPlayerProps {
     token: string
 }
 
+const getDevice = async (): Promise<Device | undefined> => {
+    const resp = await axios.get(process.env.REACT_APP_API_URL + "/device")
+    if (resp.data && resp.data.error) {
+        throw new Error(resp.data.error)
+    }
+    return resp.data
+}
+
+const transferPlayback = async (devId: string): Promise<Device | undefined> => {
+    const resp = await axios.get(process.env.REACT_APP_API_URL + `/transfer/${devId}`)
+    if (resp.data.error) {
+        throw new Error(resp.data.error)
+    }
+    return resp.data
+}
+
 export default function WebPlayer(props: WebPlayerProps): JSX.Element {
     const [player, setPlayer] = useState<Spotify.Player>()
     const [track, setTrack] = useState<Spotify.Track>()
-    const [error, setError] = useState<Spotify.Error>()
+    const [error, setError] = useState<Spotify.Error | Error>()
     const [paused, setPaused] = useState<boolean>(false)
+    const [deviceId, setDeviceId] = useState<string>()
+    const [currentDevice, setCurrentDevice] = useState<Device>()
+
+    const handleNewDevice = useCallback((devId?: string, dev?: Device) => {
+        setCurrentDevice(dev)
+        if (!devId || (devId && dev?.id !== devId)) {
+            setTrack(undefined)
+        }
+    }, [])
+
+    const onTransfer = useCallback(async (_: React.MouseEvent<HTMLButtonElement>) => {
+        if (deviceId) {
+            try {
+                const dev = await transferPlayback(deviceId)
+                handleNewDevice(deviceId, dev)
+            } catch (error: unknown) {
+                setError(error as Error)
+            }
+        }
+    }, [deviceId])
 
     useEffect(() => {
         const script = document.createElement("script")
@@ -25,18 +67,36 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
     useEffect(() => {
         window.onSpotifyWebPlaybackSDKReady = () => {
             const player = new window.Spotify.Player({
-                name: 'Web Playback SDK',
+                name: "RFID Player",
                 getOAuthToken: cb => { cb(props.token); },
             })
 
             setPlayer(player)
+        }
+    }, [props.token])
 
-            player.addListener('ready', ({ device_id }) => {
-                console.log('Ready with Device ID', device_id);
+    useEffect(() => {
+        if (player) {
+            player.on("account_error", (err) => {
+                console.error("account_error", err)
             })
 
-            player.addListener('not_ready', ({ device_id }) => {
-                console.log('Device ID has gone offline', device_id);
+            player.on("autoplay_failed", () => {
+                console.log("autoplay_failed")
+            })
+
+            player.addListener('ready', async (inst: Spotify.WebPlaybackInstance) => {
+                setDeviceId(inst.device_id)
+                try {
+                    const dev = await getDevice()
+                    handleNewDevice(inst.device_id, dev)
+                } catch (error: unknown) {
+                    setError(error as Error)
+                }
+            })
+
+            player.on("not_ready", (inst: Spotify.WebPlaybackInstance) => {
+                console.log("not_ready", inst)
             })
 
             player.addListener("authentication_error", (err) => {
@@ -51,69 +111,52 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
                 setError(err)
             })
 
-            player.addListener("player_state_changed", (state) => {
-                if (!state) {
-                    return
+            player.connect()
+        }
+
+        return () => {
+            player?.disconnect()
+        }
+    }, [player])
+
+    useEffect(() => {
+        if (player) {
+            player.addListener("player_state_changed", async (state: Spotify.PlaybackState) => {
+                try {
+                    const dev = await getDevice()
+                    handleNewDevice(deviceId, dev)
+                } catch (error: unknown) {
+                    setError(error as Error)
                 }
 
-                player.getCurrentState().then((currentState) => {
+                if (state) {
+                    const currentState = await player.getCurrentState()
                     if (currentState) {
                         setTrack(currentState.track_window.current_track)
                         setPaused(currentState.paused)
                     }
-                })
+                }
             })
-
-            player.connect()
         }
-    }, [props.token])
 
-    const onPlay = (_: React.MouseEvent<HTMLButtonElement>) => {
-        player?.togglePlay()
-    }
-    const onPrev = (_: React.MouseEvent<HTMLButtonElement>) => {
-        player?.previousTrack()
-    }
-    const onNext = (_: React.MouseEvent<HTMLButtonElement>) => {
-        player?.nextTrack()
-    }
-
-    if (error) {
-        return <p>Error: {error}</p>
-    }
-
-    if (!track) {
-        return <div>Nothing Playing</div>
-    }
-
-    if (!player) {
-        return <div>No Player</div>
-    }
+        return () => {
+            player?.removeListener("player_state_changed")
+        }
+    }, [player, deviceId])
 
     return (
         <div>
-            <img src={track.album.images[0].url} alt="" />
-            <div>
-                <div>
-                    {track.name}
-                </div>
-                <div>
-                    {track.artists.map((artist, key) => (
-                        <p key={key}>{artist.name}</p>
-                    ))}
-                </div>
-            </div>
-            <button onClick={onPrev} >
-                &lt;&lt;
-            </button>
-
-            <button onClick={onPlay} >
-                { paused ? "Play" : "Pause" }
-            </button>
-
-            <button onClick={onNext} >
-                &gt;&gt;
-            </button>
+            {error && <p>Error: {error}</p>}
+            {deviceId && <Playback deviceId={deviceId} currentDevice={currentDevice} onTransfer={onTransfer} />}
+            {track &&
+                <>
+                    <Display track={track} />
+                    {player && <Controls
+                        player={player}
+                        paused={paused}
+                    />}
+                </>
+            }
         </div>
     )
 }
