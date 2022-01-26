@@ -14,7 +14,7 @@ export default function Player(): JSX.Element {
     const [localState, setLocalState] = useState<LocalState>({ token: undefined, error: undefined, gotToken: false })
 
     useEffect(() => {
-        axios.get("/auth/token").then((resp) => {
+        axios.get(process.env.REACT_APP_BACKEND_URL + "/auth/token").then((resp) => {
             if (resp.data.error) {
                 setLocalState({ token: undefined, error: resp.data.error, gotToken: true })
             } else if (resp.data.token) {

@@ -108,7 +108,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
             </button>
 
             <button onClick={onPlay} >
-                { paused ? "PLAY" : "PAUSE" }
+                { paused ? "Play" : "Pause" }
             </button>
 
             <button onClick={onNext} >

@@ -1,12 +1,22 @@
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from .spotify import Spotify
 
 app = FastAPI()
 
-app.mount("/app", StaticFiles(directory="react", html=True), name="react")
+cors_origins = [
+    os.environ["FRONTEND_URL"],
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_methods=["GET"],
+)
 
 @app.get("/auth/login")
 async def login():
@@ -27,7 +37,7 @@ async def callback(code: str = None, error: str = None):
     except Exception as err:
         raise HTTPException(status_code=403, detail=err)
 
-    return RedirectResponse("/app")
+    return RedirectResponse(os.environ["FRONTEND_URL"])
 
 @app.get("/auth/token")
 async def token():

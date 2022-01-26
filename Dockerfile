@@ -2,6 +2,8 @@ FROM node:17-alpine as frontend
 
 WORKDIR /usr/src/app
 
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
+
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 
@@ -9,10 +11,10 @@ COPY frontend/src src
 COPY frontend/public public
 COPY frontend/tsconfig.json frontend/.env ./
 
-RUN npm run build
+CMD [ "npm", "run", "start" ]
 
 ########################################
-FROM python:3.9
+FROM python:3.9 as backend
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -44,7 +46,7 @@ COPY backend/poetry.lock backend/pyproject.toml ./
 RUN poetry install --no-dev --no-root
 RUN mkdir .spotify-cache && chmod 0755 .spotify-cache
 
-COPY --from=frontend /usr/src/app/build/ react/
+# COPY --from=frontend /usr/src/app/build/ react/
 
 COPY backend/src/api api
 RUN poetry install

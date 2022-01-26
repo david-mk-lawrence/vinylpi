@@ -1,9 +1,24 @@
 services:
-  app:
-    image: davidlawrence/rfid-player:latest
+  backend:
+    build:
+      context: .
+      target: backend
+    environment:
+      FRONTEND_URL: http://localhost:3000
     env_file:
       - spotify.env
     ports:
-      - "8000:80"
+      - "5000:80"
     volumes:
       - ./backend/src/api:/opt/pysetup/api
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    environment:
+      CHOKIDAR_USEPOLLING: 1
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app
