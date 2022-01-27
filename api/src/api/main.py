@@ -1,6 +1,6 @@
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,6 +17,20 @@ app.add_middleware(
     allow_origins=cors_origins,
     allow_methods=["GET"],
 )
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        try:
+            uri = await websocket.receive_text()
+            spotify = Spotify()
+            spotify.play(uri, os.environ["PLAYER_NAME"])
+            await websocket.send_text(f"starting playing {uri}")
+        except WebSocketDisconnect:
+            pass
+        except Exception as err:
+            await websocket.send_text(f"Error: {err}")
 
 @app.get("/auth/login")
 async def login():

@@ -5,12 +5,22 @@ services:
       target: api
     environment:
       WEB_URL: http://localhost:3000
+      PLAYER_NAME: "RFID Player"
     env_file:
       - spotify.env
     ports:
       - "5000:80"
     volumes:
       - ./api/src/api:/opt/pysetup/api
+
+  mockreader:
+    build:
+      context: .
+      target: mockreader
+    environment:
+      WEBSOCKET_ENDPOINT: ws://api/ws
+    volumes:
+      - ./mockreader/src/app:/opt/pysetup/app
 
   web:
     build:

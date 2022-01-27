@@ -40,3 +40,14 @@ class Spotify:
 
     def device(self):
         return self.client.current_playback()
+
+    def play(self, uri, device_name):
+        devices = self.client.devices()
+        device_id = None
+        for d in devices["devices"]:
+            if d["name"] == device_name:
+                device_id = d["id"]
+        if device_id is None:
+            raise Exception("unable to find device 'RFID Player'")
+
+        self.client.start_playback(device_id=device_id, context_uri=uri)
