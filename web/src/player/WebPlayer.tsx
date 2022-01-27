@@ -67,7 +67,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
     useEffect(() => {
         window.onSpotifyWebPlaybackSDKReady = () => {
             const player = new window.Spotify.Player({
-                name: "RFID Player",
+                name: process.env.REACT_APP_WEBPLAYER_NAME,
                 getOAuthToken: cb => { cb(props.token); },
             })
 

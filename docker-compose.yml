@@ -5,7 +5,7 @@ services:
       target: api
     environment:
       WEB_URL: http://localhost:3000
-      PLAYER_NAME: "RFID Player"
+      PLAYER_NAME: "VinylPi"
     env_file:
       - spotify.env
     ports:

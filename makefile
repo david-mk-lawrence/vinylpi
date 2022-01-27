@@ -1,6 +1,7 @@
-REPO:= rfid-player
+REPO:= vinylpi
 IMG_TAG ?= latest
-IMG := $${USER}/${REPO}:${IMG_TAG}
+API_IMG := ${REPO}/api:${IMG_TAG}
+WEB_IMG := ${REPO}/web:${IMG_TAG}
 
 build:
 	docker build \

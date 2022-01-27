@@ -48,6 +48,6 @@ class Spotify:
             if d["name"] == device_name:
                 device_id = d["id"]
         if device_id is None:
-            raise Exception("unable to find device 'RFID Player'")
+            raise Exception(f"unable to find device {device_name}")
 
         self.client.start_playback(device_id=device_id, context_uri=uri)
