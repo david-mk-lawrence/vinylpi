@@ -25,10 +25,11 @@ services:
   web:
     build:
       context: .
-      target: web
+      target: web-build
     environment:
       CHOKIDAR_USEPOLLING: 1
     ports:
       - "3000:3000"
     volumes:
       - ./web:/usr/src/app
+    command: ["npm", "run", "start"]
