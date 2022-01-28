@@ -1,12 +1,11 @@
 import os
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from .spotify import Spotify
-from .ws import ConnectionManager
 
 app = FastAPI()
 
@@ -21,7 +20,7 @@ app.add_middleware(
 )
 
 spotify = Spotify()
-manager = ConnectionManager()
+
 
 @app.get("/auth/login")
 async def login():
@@ -29,6 +28,7 @@ async def login():
         return RedirectResponse(url=spotify.auth.get_authorize_url())
     except Exception as err:
         raise HTTPException(status_code=403, detail=str(err))
+
 
 @app.get("/auth/callback")
 async def callback(code: str = None, error: str = None):
@@ -41,6 +41,7 @@ async def callback(code: str = None, error: str = None):
         raise HTTPException(status_code=403, detail=err)
 
     return RedirectResponse(os.environ["WEB_URL"])
+
 
 @app.get("/auth/token")
 async def token():
@@ -55,6 +56,7 @@ async def token():
 
     return {"token": token}
 
+
 @app.get("/transfer/{device_id}")
 async def transfer(device_id):
     try:
@@ -66,6 +68,7 @@ async def transfer(device_id):
         return dev.get("device")
     except Exception as err:
         return {"error": str(err)}
+
 
 @app.get("/device")
 async def device():
@@ -82,36 +85,9 @@ class SpotifyResource(BaseModel):
     uri: str
 
 
-@app.put("/reader/read")
-async def read():
+@app.put("/play")
+async def read(resource: SpotifyResource):
     try:
-        await manager.send({"mode": "read"})
+        spotify.play(resource.uri, default_device_name=os.environ["PLAYER_NAME"])
     except Exception as err:
         return {"error": str(err)}
-
-
-class WriteRequest(BaseModel):
-    uri: str
-
-
-@app.put("/reader/write")
-async def write(resource: SpotifyResource):
-    try:
-        await manager.send({
-            "mode": "write",
-            "uri": resource.uri,
-        })
-    except Exception as err:
-        return {"error": str(err)}
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            resp = await manager.receive()
-            if resp.get("mode") == "read" and resp.get("uri"):
-                spotify.play(resp["uri"], os.environ["PLAYER_NAME"])
-    except WebSocketDisconnect:
-        pass

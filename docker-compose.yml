@@ -17,10 +17,9 @@ services:
     build:
       context: .
       target: mockreader
-    environment:
-      WEBSOCKET_ENDPOINT: ws://api/ws
     volumes:
       - ./mockreader/src/app:/opt/pysetup/app
+      - ./mockreader/uris.json:/opt/pysetup/uris.json
 
   web:
     build:

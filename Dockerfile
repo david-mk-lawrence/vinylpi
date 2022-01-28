@@ -70,4 +70,4 @@ RUN poetry install --no-dev --no-root
 COPY mockreader/src/app app
 RUN poetry install
 
-CMD  ["python", "app/read.py"]
+ENTRYPOINT [ "python", "app" ]

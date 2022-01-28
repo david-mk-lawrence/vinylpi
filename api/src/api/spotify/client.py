@@ -41,14 +41,14 @@ class Spotify:
     def device(self):
         return self.client.current_playback()
 
-    def play(self, uri, default_device_name):
+    def play(self, uri, default_device_name=None):
         devices = self.client.devices()
         device_id = None
         default_device_id = None
         for d in devices["devices"]:
             if d["is_active"]:
                 device_id = d["id"]
-            if d["name"] == default_device_name:
+            if default_device_name and d["name"] == default_device_name:
                 default_device_id = d["id"]
 
         if device_id is None:

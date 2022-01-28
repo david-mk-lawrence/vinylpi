@@ -1,45 +1,37 @@
-import os
 import json
-
-import asyncio
-import websockets
+import urllib3
 
 
-async def run(websocket_url: str):
-    async with websockets.connect(websocket_url) as websocket:
+def read(api_url, data_file):
+    while True:
         try:
-            while True:
-                msg = await websocket.recv()
-                d = json.loads(msg)
-                resp = scan(d)
-                await websocket.send(json.dumps(resp))
-        except websockets.ConnectionClosed:
-            print("connection closed")
+            chip_id = get_chip_id()
+            uri = get_uri(data_file, chip_id)
+            send_uri(api_url, uri)
+        except Exception as err:
+            print(err)
 
-def scan(d):
+def get_chip_id():
     try:
-        resp = {"mode": d["mode"]}
-        if d["mode"] == "read":
-            print("Waiting for text...")
-            text = input()
-            print(f"Read Text={text}")
-            resp["uri"] = text
-
-        elif d["mode"] == "write":
-            print(f"Write Text={d['uri']}")
-        else:
-            raise Exception("invalid mode")
+        print("Waiting for chip...")
+        chip_id = input()
+        print(f"Read Chip ID={id}")
+        return chip_id
     except Exception as err:
-        resp["error"] = str(err)
+        raise Exception(f"Failed to read chip: {err}")
 
-    return resp
-
-def main(websocket_url):
-    asyncio.run(run(websocket_url))
-
-if __name__ == "__main__":
+def get_uri(data_file, chip_id):
     try:
-        main(os.environ["WEBSOCKET_ENDPOINT"])
-    except IndexError:
-        print("missing websocket url")
-        exit(1)
+        with open(data_file) as f:
+            uris = json.load(f)
+        return uris[chip_id]
+    except KeyError:
+        raise Exception("key not found in data file. chip needs to be written first")
+
+def send_uri(api_url, uri):
+    http = urllib3.PoolManager()
+    body = json.dumps({"uri": uri}).encode("utf-8")
+
+    resp = http.request("PUT", api_url, body=body, headers={"content-type": "application/json"})
+    if resp.status != 200:
+        raise Exception("failed to send uri")

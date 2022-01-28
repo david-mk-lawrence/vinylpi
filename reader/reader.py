@@ -1,53 +1,45 @@
-import sys
 import json
 
-import asyncio
-import websockets
 import RPi.GPIO as GPIO
+import urllib3
 from mfrc522 import SimpleMFRC522
 
 
-async def run(rfid: SimpleMFRC522, websocket_url: str):
-    async with websockets.connect(websocket_url) as websocket:
-        try:
-            while True:
-                msg = await websocket.recv()
-                d = json.loads(msg)
-                resp = scan(rfid, d)
-                await websocket.send(json.dumps(resp))
-        except websockets.ConnectionClosed:
-            print("connection closed")
-        finally:
-            GPIO.cleanup()
-
-def scan(rfid, d):
-    try:
-        resp = {"mode": d["mode"]}
-        if d["mode"] == "read":
-            print("Waiting for chip...")
-            id, text = rfid.read()
-            print(f"Read Chip ID={id} Text={text}")
-            resp["uri"] = text
-
-        elif d["mode"] == "write":
-            print("Waiting for chip...")
-            id, text = rfid.write(d["uri"])
-            print(f"Wrote Chip ID={id} Text={text}")
-        else:
-            raise Exception("invalid mode")
-    except Exception as err:
-        resp["error"] = str(err)
-
-    return resp
-
-def main(websocket_url):
+def read(api_url, data_file):
     rfid = SimpleMFRC522()
-    asyncio.run(run(rfid, websocket_url))
 
-if __name__ == "__main__":
     try:
-        websocket_url = sys.argv[1]
-        main(websocket_url)
-    except IndexError:
-        print("missing websocket url")
-        exit(1)
+        while True:
+            try:
+                chip_id = get_chip_id(rfid)
+                uri = get_uri(data_file, chip_id)
+                send_uri(api_url, uri)
+            except Exception as err:
+                print(err)
+    finally:
+        GPIO.cleanup()
+
+def get_chip_id(rfid):
+    try:
+        print("Waiting for chip...")
+        chip_id, _ = rfid.read()
+        print(f"Read Chip ID={chip_id}")
+        return chip_id
+    except Exception as err:
+        raise Exception(f"Failed to read chip: {err}")
+
+def get_uri(data_file, chip_id):
+    try:
+        with open(data_file) as f:
+            uris = json.load(f)
+        return uris[chip_id]
+    except KeyError:
+        raise Exception("key not found in data file. chip needs to be written first")
+
+def send_uri(api_url, uri):
+    http = urllib3.PoolManager()
+    body = json.dumps({"uri": uri}).encode("utf-8")
+
+    resp = http.request("PUT", api_url, body=body, headers={"content-type": "application/json"})
+    if resp.status != 200:
+        raise Exception("failed to send uri")
