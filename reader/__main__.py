@@ -13,8 +13,8 @@ if __name__ == "__main__":
         exit(1)
 
     if args.mode == "r":
-        from reader.reader import read
-        read(args.api_url, args.data_file)
+        import reader
+        reader.read(args.api_url, args.data_file)
     elif args.mode == "w":
-        from reader.writer import write
-        write(args.data_file)
+        import writer
+        writer.write(args.data_file)

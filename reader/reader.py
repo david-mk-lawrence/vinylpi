@@ -1,4 +1,5 @@
 import json
+import time
 
 import RPi.GPIO as GPIO
 import urllib3
@@ -16,6 +17,7 @@ def read(api_url, data_file):
                 send_uri(api_url, uri)
             except Exception as err:
                 print(err)
+            time.sleep(2)
     finally:
         GPIO.cleanup()
 
@@ -24,7 +26,7 @@ def get_chip_id(rfid):
         print("Waiting for chip...")
         chip_id, _ = rfid.read()
         print(f"Read Chip ID={chip_id}")
-        return chip_id
+        return str(chip_id)
     except Exception as err:
         raise Exception(f"Failed to read chip: {err}")
 
