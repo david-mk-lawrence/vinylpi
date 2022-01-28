@@ -41,13 +41,19 @@ class Spotify:
     def device(self):
         return self.client.current_playback()
 
-    def play(self, uri, device_name):
+    def play(self, uri, default_device_name):
         devices = self.client.devices()
         device_id = None
+        default_device_id = None
         for d in devices["devices"]:
-            if d["name"] == device_name:
+            if d["is_active"]:
                 device_id = d["id"]
+            if d["name"] == default_device_name:
+                default_device_id = d["id"]
+
         if device_id is None:
-            raise Exception(f"unable to find device {device_name}")
+            if default_device_id is None:
+                raise Exception(f"no active devices and unable to find default device {default_device_name}")
+            device_id = default_device_id
 
         self.client.start_playback(device_id=device_id, context_uri=uri)

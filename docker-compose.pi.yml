@@ -8,8 +8,11 @@ services:
       - spotify.env
     ports:
       - "5000:80"
+    restart: unless-stopped
+
 
   web:
     image: vinylpi/web:latest
     ports:
       - "3000:80"
+    restart: unless-stopped

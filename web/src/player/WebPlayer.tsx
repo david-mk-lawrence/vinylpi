@@ -4,6 +4,7 @@ import axios from "axios"
 import Display from "./Display"
 import Controls from "./Controls"
 import Playback from "./Playback"
+import Reader from "./Reader"
 import { Device } from "./types"
 
 interface WebPlayerProps {
@@ -163,6 +164,7 @@ export default function WebPlayer(props: WebPlayerProps): JSX.Element {
                     />}
                 </>
             }
+            <Reader />
         </div>
     )
 }
