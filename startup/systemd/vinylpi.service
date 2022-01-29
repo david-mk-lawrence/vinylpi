@@ -1,0 +1,11 @@
+[Unit]
+Description=VinylPi Container Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml up -d
+ExecStop=docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml down
+
+[Install]
+WantedBy=multi-user.target

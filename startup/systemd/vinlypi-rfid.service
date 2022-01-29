@@ -1,0 +1,12 @@
+[Unit]
+Description=VinylPi RFID Reader Service
+Requires=vinylpi.service
+After=vinylpi.service
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/python /home/pi/Projects/vinylpi/reader --mode r --api_url http://localhost:5000 --data_file /home/pi/Projects/vinylpi/uris.json
+
+[Install]
+WantedBy=multi-user.target
