@@ -4,8 +4,11 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStart=docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml up -d
-ExecStop=docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml down
+Type=oneshot
+RemainAfterExit=true
+User=pi
+ExecStart=/home/pi/.local/bin/docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml up -d --remove-orphans
+ExecStop=/home/pi/.local/bin/docker-compose -f /home/pi/Projects/vinylpi/docker-compose.pi.yml down
 
 [Install]
 WantedBy=multi-user.target
