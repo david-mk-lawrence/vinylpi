@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
 interface ControlsProps {
     player: Spotify.Player
     paused: boolean
@@ -15,18 +17,18 @@ export default function ControlsPlayer(props: ControlsProps): JSX.Element {
     }
 
     return (
-        <>
+        <div>
             <button onClick={onPrev} >
-                &lt;&lt;
+                <FontAwesomeIcon icon="step-backward" />
             </button>
 
             <button onClick={onPlay} >
-                { props.paused ? "Play" : "Pause" }
+                { props.paused ? <FontAwesomeIcon icon="play" /> : <FontAwesomeIcon icon="pause" /> }
             </button>
 
             <button onClick={onNext} >
-                &gt;&gt;
+                <FontAwesomeIcon icon="step-forward" />
             </button>
-        </>
+        </div>
     )
 }

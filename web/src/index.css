@@ -1,13 +1,40 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root {
+  --text-color: white;
+  --link-color: #61dafb;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  margin: 0;
+  font-family: Canterall, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-color);
+  font-size: 60px;
+}
+
+a {
+  color: var(--link-color);
+}
+
+button {
+  padding: .35em 1.2em;
+  margin: 0 0.3em 0.3em 0;
+  border: 0.1em solid var(--text-color);
+  border-radius: 20px;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 300;
+  background-color: inherit;
+  color: inherit;
+  font-size: inherit;
+}
+
+.app {
+  background-color: #282c34;
+  text-align: center;
+  display: grid;
+  justify-content: center;
+  width: 1024px; /* Raspberry pi 7" touchsreen width */
+  height: 600px; /* Raspberry pi 7" touchsreen height */
+  align-items: center;
 }

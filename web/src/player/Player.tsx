@@ -1,46 +1,55 @@
-import React, { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import axios from "axios"
+import axiosRetry from "axios-retry"
 
 import WebPlayer from "./WebPlayer"
 import Login from "./Login"
 
-interface LocalState {
-    token?: string
-    error?: string
-    gotToken: boolean
-}
+axiosRetry(axios, { retries: 5, retryDelay: axiosRetry.exponentialDelay })
 
 export default function Player(): JSX.Element {
-    const [localState, setLocalState] = useState<LocalState>({ token: undefined, error: undefined, gotToken: false })
+    const [token, setToken] = useState<string>()
+    const [error, setError] = useState<string>()
+    const [requestComplete, setRequestComplete] = useState<boolean>(false)
 
-    useEffect(() => {
-        axios.get(process.env.REACT_APP_API_URL + "/auth/token").then((resp) => {
-            if (resp.data.error) {
-                setLocalState({ token: undefined, error: resp.data.error, gotToken: true })
-            } else if (resp.data.token) {
-                setLocalState({ token: resp.data.token, error: undefined, gotToken: true })
-            } else {
-                setLocalState({ token: undefined, error: undefined, gotToken: true })
-            }
-        })
+    const onReload = useCallback(() => {
+        window.location.reload()
     }, [])
 
-    if (!localState.gotToken) {
-        return <div>Getting token...</div>
-    }
+    useEffect(() => {
+        async function getToken() {
+            try {
+                const resp = await axios.get(process.env.REACT_APP_API_URL + "/auth/token")
+                if (resp.data.error) {
+                    setError(resp.data.error)
+                } else if (resp.data.token) {
+                    setToken(resp.data.token)
+                }
+            } catch (error) {
+                setError((error as Error).message)
+            } finally {
+                setRequestComplete(true)
+            }
+        }
+        getToken()
+    }, [])
 
-    if (localState.error) {
+    if (error) {
         return (
             <div>
-                <p>Error Getting Token: {localState.error}</p>
-                <Login />
+                <p>Unable to load Player: {error}</p>
+                <p><button onClick={onReload}>Reload Page</button></p>
             </div>
         )
     }
 
-    if (!localState.token) {
+    if (!requestComplete) {
+        return <div>Loading...</div>
+    }
+
+    if (!token) {
         return <Login />
     }
 
-    return <WebPlayer token={localState.token} />
+    return <WebPlayer token={token} />
 }

@@ -15,8 +15,15 @@ export default function Playback(props: PlaybackProps): JSX.Element {
 
     return (
         <div>
-            {props.currentDevice && <>Currently Playing on {props.currentDevice.name}</>}
-            <button onClick={props.onTransfer}>Transfer Playback Here</button>
+            {props.currentDevice &&
+                <>
+                    <p>Currently Playing on</p>
+                    <p>{props.currentDevice.name}</p>
+                </>
+            }
+            <div>
+                <button onClick={props.onTransfer}>Transfer Playback Here</button>
+            </div>
         </div>
     )
 }
