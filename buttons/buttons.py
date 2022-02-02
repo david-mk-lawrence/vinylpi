@@ -8,30 +8,28 @@ PAUSE = 24
 NEXT = 22
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(PREV, GPIO.IN, pull_up_down=GPIO.PUD_UP) # prev
-GPIO.setup(PAUSE, GPIO.IN, pull_up_down=GPIO.PUD_UP) # pause
-GPIO.setup(NEXT, GPIO.IN, pull_up_down=GPIO.PUD_UP) # next
+GPIO.setup(PREV, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(PAUSE, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(NEXT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 http = urllib3.PoolManager()
 
 def listen(api_url):
     try:
+        prev_state, pause_state, next_state = False, False, False
         while True:
-            input_state = GPIO.input(PREV)
-            if input_state == False:
-                print('Prev Pressed')
-                send_state(api_url + "/playback/prev")
-            input_state = GPIO.input(PAUSE)
-            if input_state == False:
-                print('Pause Pressed')
-                send_state(api_url + "/playback/toggle")
-            input_state = GPIO.input(NEXT)
-            if input_state == False:
-                send_state(api_url + "/playback/next")
-
+            prev_state = handle_input(PREV, prev_state, api_url + "/playback/prev")
+            pause_state = handle_input(PAUSE, pause_state, api_url + "/playback/toggle")
+            next_state = handle_input(NEXT, next_state, api_url + "/playback/next")
             time.sleep(0.2)
     finally:
         GPIO.cleanup()
 
-def send_state(url):
-    http.request("PUT", url)
+def handle_input(pin, last_state, url):
+    if GPIO.input(pin) == False:
+        if not last_state:
+            print(url)
+            # http.request("PUT", url)
+        return True
+    else:
+        return False
