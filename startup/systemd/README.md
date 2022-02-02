@@ -6,6 +6,7 @@ Create the service files in `/etc/systemd/system` and copy the contents in.
 sudo nano /etc/systemd/system/vinlypi.service
 sudo nano /etc/systemd/system/vinlypi-rfid.service
 sudo nano /etc/systemd/system/vinlypi-buttons.service
+sudo nano /etc/systemd/system/vinlypi-power.service
 ```
 
 Then update the permissions of the service files.
@@ -14,6 +15,7 @@ Then update the permissions of the service files.
 sudo chmod 644 /etc/systemd/system/vinlypi.service
 sudo chmod 644 /etc/systemd/system/vinlypi-rfid.service
 sudo chmod 644 /etc/systemd/system/vinlypi-buttons.service
+sudo chmod 644 /etc/systemd/system/vinlypi-power.service
 ```
 
 Reload the systemd daemon
@@ -28,4 +30,5 @@ Enable the services to start on boot
 sudo systemctl enable vinlypi.service
 sudo systemctl enable vinlypi-rfid.service
 sudo systemctl enable vinlypi-buttons.service
+sudo systemctl enable vinlypi-power.service
 ```
