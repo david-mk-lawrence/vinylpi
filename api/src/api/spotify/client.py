@@ -35,25 +35,33 @@ class Spotify:
     def get_token(self):
         self.client.auth_manager.get_access_token(as_dict=False)
 
-    def transfer(self, device_id):
+    def transfer_playback(self, device_id):
         self.client.transfer_playback(device_id)
 
-    def device(self):
+    def get_playback(self):
         return self.client.current_playback()
 
-    def play(self, uri, default_device_name=None):
+    def toggle_playback(self):
+        playback = self.playback()
+        if not playback:
+            return
+
+        if playback.get("is_playing"):
+            self.client.pause_playback()
+        else:
+            self.client.start_playback()
+
+    def play_track(self, uri):
         devices = self.client.devices()
         device_id = None
-        default_device_id = None
         for d in devices["devices"]:
             if d["is_active"]:
                 device_id = d["id"]
-            if default_device_name and d["name"] == default_device_name:
-                default_device_id = d["id"]
-
-        if device_id is None:
-            if default_device_id is None:
-                raise Exception(f"no active devices and unable to find default device {default_device_name}")
-            device_id = default_device_id
 
         self.client.start_playback(device_id=device_id, context_uri=uri)
+
+    def next_track(self):
+        self.client.next_track()
+
+    def prev_track(self):
+        self.client.previous_track()

@@ -32,6 +32,6 @@ def send_uri(api_url, uri):
     http = urllib3.PoolManager()
     body = json.dumps({"uri": uri}).encode("utf-8")
 
-    resp = http.request("PUT", api_url, body=body, headers={"content-type": "application/json"})
+    resp = http.request("PUT", api_url + "/playback/play", body=body, headers={"content-type": "application/json"})
     if resp.status != 200:
         raise Exception("failed to send uri")

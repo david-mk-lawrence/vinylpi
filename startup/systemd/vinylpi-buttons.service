@@ -1,0 +1,11 @@
+[Unit]
+Description=VinylPi Input Buttons Service
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/bin/python /home/pi/Projects/vinylpi/buttons --api_url http://localhost:5000
+
+[Install]
+WantedBy=multi-user.target

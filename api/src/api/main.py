@@ -60,12 +60,12 @@ async def token():
 @app.get("/transfer/{device_id}")
 async def transfer(device_id):
     try:
-        spotify.transfer(device_id)
+        spotify.transfer_playback(device_id)
 
-        dev = spotify.device()
-        if not dev:
+        playback = spotify.get_playback()
+        if not playback:
             return None
-        return dev.get("device")
+        return playback.get("device")
     except Exception as err:
         return {"error": str(err)}
 
@@ -73,10 +73,10 @@ async def transfer(device_id):
 @app.get("/device")
 async def device():
     try:
-        dev = spotify.device()
-        if not dev:
+        playback = spotify.get_playback()
+        if not playback:
             return None
-        return dev.get("device")
+        return playback.get("device")
     except Exception as err:
         return {"error": str(err)}
 
@@ -85,9 +85,33 @@ class SpotifyResource(BaseModel):
     uri: str
 
 
-@app.put("/play")
-async def read(resource: SpotifyResource):
+@app.put("/playback/play")
+async def play(resource: SpotifyResource):
     try:
-        spotify.play(resource.uri, default_device_name=os.environ["PLAYER_NAME"])
+        spotify.play_track(resource.uri)
+    except Exception as err:
+        return {"error": str(err)}
+
+
+@app.put("/playback/toggle")
+async def toggle():
+    try:
+        spotify.toggle_playback()
+    except Exception as err:
+        return {"error": str(err)}
+
+
+@app.put("/playback/prev")
+async def prev_track():
+    try:
+        spotify.prev_track()
+    except Exception as err:
+        return {"error": str(err)}
+
+
+@app.put("/playback/next")
+async def next_track():
+    try:
+        spotify.next_track()
     except Exception as err:
         return {"error": str(err)}
