@@ -1,0 +1,11 @@
+[Unit]
+Description=VinylPi Power Button Service
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/bin/python /home/pi/Projects/vinylpi/power
+
+[Install]
+WantedBy=multi-user.target
