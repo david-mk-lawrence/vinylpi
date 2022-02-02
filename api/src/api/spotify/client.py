@@ -42,7 +42,7 @@ class Spotify:
         return self.client.current_playback()
 
     def toggle_playback(self):
-        playback = self.playback()
+        playback = self.get_playback()
         if not playback:
             return
 
